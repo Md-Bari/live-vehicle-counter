@@ -70,3 +70,20 @@ def test_reclassify_moves_count_and_event():
     assert c.reclassify(7, "Pickup") is False          # already that class
     assert c.reclassify(99, "Bus") is False            # never counted
 
+
+def test_class_voter_ignores_flicker_but_follows_confident_evidence():
+    import numpy as np  # noqa: F401  (processor imports cv2/numpy)
+    from processor import ClassVoter
+    CAR, PICKUP = 3, 10
+    v = ClassVoter(17)
+    # mostly Pickup with occasional low-confidence Car frames -> stays Pickup
+    seq = [(PICKUP, 0.8), (CAR, 0.5), (PICKUP, 0.7), (CAR, 0.55), (PICKUP, 0.75)]
+    out = [v.update(1, c, s, i) for i, (c, s) in enumerate(seq)]
+    assert out[1:] == [PICKUP] * 4
+    # a long run of confident Car frames eventually overturns it (old votes decay)
+    for i in range(5, 40):
+        last = v.update(1, CAR, 0.9, i)
+    assert last == CAR
+    # tracks not seen for ttl frames are forgotten
+    v.prune(40 + v.ttl + 1)
+    assert v.update(1, PICKUP, 0.3, 200) == PICKUP
