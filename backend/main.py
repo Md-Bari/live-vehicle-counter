@@ -128,3 +128,20 @@ def start(req: StartRequest):
     if req.source_type == "camera":
         if not source.isdigit():
             raise HTTPException(400, "camera source must be an index like '0'")
+    elif req.source_type == "file":
+        path = (UPLOAD_DIR / Path(source).name).resolve()   # only files inside the upload dir
+        if not path.exists():
+            raise HTTPException(404, "uploaded file not found; upload it first via /api/upload")
+        source = str(path)
+    elif not re.match(r"^(rtsp|rtmp|http|https)://", source, re.I):
+        raise HTTPException(400, "stream URL must start with rtsp://, rtmp://, http:// or https://")
+    processor.start(SessionConfig(req.source_type, source, req.model, req.conf, req.loop))
+    return processor.state()
+
+
+@app.post("/api/stop")
+def stop():
+    processor.stop()
+    return processor.state()
+
+
