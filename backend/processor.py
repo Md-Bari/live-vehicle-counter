@@ -311,3 +311,28 @@ class VideoProcessor:
                 self.frame_id += 1
                 self.frame_cond.notify_all()
 
+    def _annotate(self, frame, dets, line, totals, crossed_ids):
+        img = frame.copy()
+        h, w = img.shape[:2]
+        short = min(w, h)
+        lw = max(1, round(short / 500))            # box line width: 1 at 720p, 2 at 1080p
+        fs = max(0.35, short / 1800)               # label font scale: 0.4 at 720p, 0.6 at 1080p
+        ft = max(1, round(short / 900))
+        for x1, y1, x2, y2, c, s, tid in dets:
+            color = _PALETTE[c % len(_PALETTE)]
+            p1, p2 = (int(x1), int(y1)), (int(x2), int(y2))
+            cv2.rectangle(img, p1, p2, color, lw + (2 if tid in crossed_ids else 0))
+            label = self.names[c] + (f" #{tid}" if tid is not None else "")
+            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, fs, ft)
+            ty = p1[1] if p1[1] - th - 4 >= 0 else p1[1] + th + 4   # keep label inside the frame
+            cv2.rectangle(img, (p1[0], ty - th - 4), (p1[0] + tw + 4, ty), color, -1)
+            cv2.putText(img, label, (p1[0] + 2, ty - 3), cv2.FONT_HERSHEY_SIMPLEX, fs, (255, 255, 255), ft, cv2.LINE_AA)
+            cv2.circle(img, (int((x1 + x2) / 2), int((y1 + y2) / 2)), lw + 2, color, -1)
+        (ax, ay), (bx, by) = line
+        cv2.line(img, (int(ax * w), int(ay * h)), (int(bx * w), int(by * h)), (0, 255, 255), lw + 2, cv2.LINE_AA)
+        txt = f"IN {totals['in']}  OUT {totals['out']}  TOTAL {totals['total']}"
+        hs, ht = max(0.55, short / 1100), max(1, round(short / 500))
+        (tw, th), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, hs, ht)
+        cv2.rectangle(img, (8, 8), (8 + tw + 16, 8 + th + 16), (0, 0, 0), -1)
+        cv2.putText(img, txt, (16, 8 + th + 8), cv2.FONT_HERSHEY_SIMPLEX, hs, (0, 255, 255), ht, cv2.LINE_AA)
+        return img
