@@ -90,3 +90,21 @@ cd frontend && npm run start        :: or: npm run dev
 | Dashboard | http://localhost:3000 |
 | API docs (Swagger) | http://localhost:8001/docs |
 
+The backend uses port **8001** because Docker Desktop already uses 8000 on this machine. To use another port, start uvicorn with `--port N` and set `NEXT_PUBLIC_API_URL=http://localhost:N` in `frontend/.env.local`, then rebuild the frontend.
+
+## Using it
+
+1. **Choose a source:**
+   - **Video file:** upload any mp4/avi/mov/mkv. It plays at its native speed, like a live feed. Tick *Loop video* to replay it.
+   - **Webcam:** a camera attached to the computer running the backend. Press *Detect* to list cameras.
+   - **IP camera / URL:** an RTSP, RTMP or HTTP stream, for example `rtsp://user:pass@192.168.1.10:554/stream`. This covers CCTV cameras and phone IP-camera apps.
+2. **Choose a model:**
+   - **YOLO26m @ 960px** is more accurate (test mAP50 0.896). It runs at about 25+ FPS on an RTX 5070 Ti.
+   - **YOLO26s @ 640px** is faster (test mAP50 0.884).
+3. **Set the confidence threshold.** The default of 0.35 works well. Raise it to reduce false detections, or lower it to catch more distant vehicles.
+4. **Press Start.**
+5. **Place the counting line.** Use *Draw counting line* and click two points on the video, or use the *Horizontal* / *Vertical* presets. Draw it across the road, where vehicles pass. The green **IN** and blue **OUT** arrows show which direction counts as which.
+6. **Read the results.** The cards show the totals, the table shows counts per vehicle type and direction, and the right panel lists each crossing. *Download CSV* exports every crossing with a timestamp; *Reset* clears the counts.
+
+## How counting works
+
