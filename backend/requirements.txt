@@ -1,0 +1,10 @@
+fastapi>=0.115
+uvicorn[standard]>=0.32
+python-multipart>=0.0.18
+ultralytics>=8.4
+lap>=0.5.12
+opencv-python>=4.9
+numpy
+torch            # install the CUDA build from https://pytorch.org for GPU inference
+pytest           # tests only
+httpx            # tests only
