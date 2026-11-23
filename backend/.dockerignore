@@ -1,0 +1,7 @@
+uploads/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+*.log
+Dockerfile
+.dockerignore
