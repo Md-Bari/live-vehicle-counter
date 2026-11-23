@@ -108,3 +108,21 @@ The backend uses port **8001** because Docker Desktop already uses 8000 on this 
 
 ## How counting works
 
+- Every detection is tracked with **ByteTrack**, so each vehicle keeps the same ID (`Car #42`) from frame to frame.
+- A vehicle is counted when its box center moves from one side of the line to the other.
+- Each track ID counts at most once per direction, so jitter on the line does not double-count.
+- A vehicle moving to the right-hand side of the line, as seen from its start point toward its end point, counts as **IN**.
+
+To try the app without a road video, run `python tools/make_demo_video.py`. It builds `tools/demo_traffic.mp4` by panning across dataset images. Upload it and use the **Vertical** line preset.
+
+## API summary
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/health` | status and GPU name |
+| GET | `/api/models` | available models |
+| GET | `/api/cameras` | probe local cameras |
+| POST | `/api/upload` | upload a video (multipart `file`), returns `file_id` |
+| POST | `/api/start` | `{source_type: camera\|url\|file, source, model, conf, loop}` |
+| POST | `/api/stop` | stop the pipeline |
+| POST | `/api/line` | `{a: [x, y], b: [x, y]}` in 0–1 frame coordinates |
