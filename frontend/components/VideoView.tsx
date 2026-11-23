@@ -37,3 +37,23 @@ export default function VideoView({ state, streamKey }: { state: PipelineState |
   const hasFrame = (state?.frames ?? 0) > 0;
   const line = state?.counts.line ?? { a: [0, 0.6] as Pt, b: [1, 0.6] as Pt };
 
+  const toNorm = (e: MouseEvent): Pt => {
+    const r = box.current!.getBoundingClientRect();
+    const clamp = (v: number) => Math.min(1, Math.max(0, v));
+    return [clamp((e.clientX - r.left) / r.width), clamp((e.clientY - r.top) / r.height)];
+  };
+
+  const save = async (a: Pt, b: Pt) => {
+    setError(null);
+    try { await api.setLine(a, b); } catch (e) { setError((e as Error).message); }
+  };
+
+  const onClick = (e: MouseEvent) => {
+    if (!drawing) return;
+    const p = toNorm(e);
+    if (!first) { setFirst(p); return; }
+    if (Math.hypot((p[0] - first[0]) * W, (p[1] - first[1]) * H) < 10) return; // too short
+    save(first, p);
+    setFirst(null); setHover(null); setDrawing(false);
+  };
+
