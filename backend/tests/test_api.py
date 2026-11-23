@@ -69,3 +69,21 @@ def test_upload_run_and_count(client, pan_video, model):
             break
         time.sleep(0.5)
     assert st["status"] == "finished", st
+    assert st["frames"] == 60
+    assert st["counts"]["total"]["total"] > 0, "expected some vehicles to cross the line"
+    # camera pans right => objects move right-to-left => every crossing has the same direction
+    t = st["counts"]["total"]
+    assert min(t["in"], t["out"]) == 0, t
+
+    csv = client.get("/api/events.csv").text.strip().splitlines()
+    assert csv[0].startswith("timestamp_iso") and len(csv) - 1 == t["total"]
+    print(f"\n{model}: counted {t['total']} crossings:",
+          {k: v["total"] for k, v in st["counts"]["per_class"].items() if v["total"]})
+    (main.UPLOAD_DIR / file_id).unlink(missing_ok=True)
+
+
+def test_stream_and_ws(client):
+    with client.websocket_connect("/ws/state") as ws:
+        msg = ws.receive_json()
+        assert "counts" in msg and "status" in msg
+    assert main.processor.jpeg is not None and main.processor.jpeg[:2] == b"\xff\xd8"   # last annotated frame is a JPEG
