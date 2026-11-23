@@ -15,3 +15,22 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
+import cv2
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, StreamingResponse
+from pydantic import BaseModel, Field, field_validator
+
+from config import CORS_ORIGINS, DEFAULT_MODEL, MAX_UPLOAD_MB, MODELS, UPLOAD_DIR, VIDEO_EXTS
+from processor import SessionConfig, VideoProcessor, open_camera
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+processor = VideoProcessor()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    yield
+    processor.stop()
+
+
