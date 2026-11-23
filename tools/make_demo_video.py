@@ -26,3 +26,22 @@ def busiest_images(n):
     return [p for _, p in scored[:n]]
 
 
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("out", nargs="?", default=str(Path(__file__).parent / "demo_traffic.mp4"))
+    ap.add_argument("--images", type=int, default=8)
+    ap.add_argument("--seconds", type=float, default=4.0, help="pan duration per image")
+    a = ap.parse_args()
+
+    W, H, FPS = 1280, 720, 25
+    vw = cv2.VideoWriter(a.out, cv2.VideoWriter_fourcc(*"mp4v"), FPS, (W, H))
+    for path in busiest_images(a.images):
+        img = cv2.imread(str(path))
+        if img is None:
+            continue
+        s = H / img.shape[0]
+        img = cv2.resize(img, (max(int(img.shape[1] * s), int(W * 1.6)), H))  # make wide enough to pan
+        for x in np.linspace(0, img.shape[1] - W, int(a.seconds * FPS)).astype(int):
+            vw.write(img[:, x:x + W])
+    vw.release()
+    print("wrote", a.out)
