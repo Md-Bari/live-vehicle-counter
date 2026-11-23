@@ -38,3 +38,23 @@ export default function CountsPanel({ state }: { state: PipelineState | null }) 
         ) : (
           <table className="counts">
             <thead>
+              <tr><th>Type</th><th className="bar-col" aria-label="share" /><th>IN</th><th>OUT</th><th>Total</th><th>In view</th></tr>
+            </thead>
+            <tbody>
+              {visible.map((c) => (
+                <tr key={c.name}>
+                  <td><span className="swatch" style={{ background: c.color }} />{c.name}</td>
+                  <td className="bar-col"><div className="bar"><div style={{ width: `${(c.total / max) * 100}%`, background: c.color }} /></div></td>
+                  <td className="num">{c.in}</td>
+                  <td className="num">{c.out}</td>
+                  <td className="num strong">{c.total}</td>
+                  <td className="num muted">{state?.in_frame[c.name] ?? 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    </>
+  );
+}
