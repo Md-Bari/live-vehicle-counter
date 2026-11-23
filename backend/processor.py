@@ -197,3 +197,27 @@ class VideoProcessor:
             cap = open_camera(idx)
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280); cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         elif cfg.source_type == "file":
+            if not Path(cfg.source).exists():
+                raise FileNotFoundError(cfg.source)
+            cap = cv2.VideoCapture(cfg.source)
+        else:
+            cap = cv2.VideoCapture(cfg.source, cv2.CAP_FFMPEG)
+        if not cap.isOpened():
+            raise RuntimeError(f"could not open video source: {cfg.source}")
+        return cap
+
+    def _run(self, cfg: SessionConfig):
+        cap, reader = None, None
+        try:
+            model, imgsz = self._load_model(cfg.model)
+            self.names = [model.names[i] for i in range(len(model.names))]
+            self.voter = ClassVoter(len(self.names))
+            cap = self._open(cfg)
+            is_file = cfg.source_type == "file"
+            src_fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+            if not 1 <= src_fps <= 120:
+                src_fps = 25.0
+            reader = None if is_file else LatestFrameReader(cap)
+            self.status = "running"
+            t_prev, next_due = time.perf_counter(), time.perf_counter()
+
