@@ -57,3 +57,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export const api = {
+  health: () => request<{ status: string; gpu: string | null; pipeline: string }>("/api/health"),
+  models: () => request<ModelInfo[]>("/api/models"),
+  cameras: () => request<Camera[]>("/api/cameras"),
+  start: (body: { source_type: "camera" | "url" | "file"; source: string; model: string; conf: number; loop: boolean }) =>
+    request<PipelineState>("/api/start", { method: "POST", body: JSON.stringify(body) }),
+  stop: () => request<PipelineState>("/api/stop", { method: "POST" }),
+  reset: () => request<PipelineState>("/api/reset", { method: "POST" }),
+  setLine: (a: [number, number], b: [number, number]) =>
+    request("/api/line", { method: "POST", body: JSON.stringify({ a, b }) }),
+  csvUrl: () => `${API_URL}/api/events.csv`,
+  streamUrl: (key: number) => `${API_URL}/api/stream?k=${key}`,
+
