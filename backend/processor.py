@@ -174,3 +174,26 @@ class VideoProcessor:
             "counts": snap, "recent_events": recent,
         }
 
+    def events_csv(self) -> str:
+        with self.lock:
+            rows = list(self.all_events)
+        lines = ["timestamp_iso,timestamp,track_id,class,direction"]
+        for e in rows:
+            iso = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(e.timestamp)) + f".{int(e.timestamp % 1 * 1000):03d}"
+            lines.append(f"{iso},{e.timestamp:.3f},{e.track_id},{e.cls},{e.direction}")
+        return "\n".join(lines) + "\n"
+
+    # ---------------------------------------------------------------- pipeline
+    def _load_model(self, key: str):
+        from ultralytics import YOLO
+        spec = MODELS[key]
+        # a fresh YOLO object per session gives a fresh tracker state
+        model = YOLO(str(spec["path"]), task="detect")
+        return model, spec["imgsz"]
+
+    def _open(self, cfg: SessionConfig) -> cv2.VideoCapture:
+        if cfg.source_type == "camera":
+            idx = int(cfg.source)
+            cap = open_camera(idx)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280); cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        elif cfg.source_type == "file":
