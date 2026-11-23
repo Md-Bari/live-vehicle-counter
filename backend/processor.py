@@ -281,3 +281,22 @@ class VideoProcessor:
                 in_frame[self.names[c]] += 1
         self.voter.prune(self.frames)
 
+        crossed_ids = set()
+        with self.lock:
+            active = set()
+            for x1, y1, x2, y2, c, s, tid in dets:
+                if tid is None:
+                    continue
+                active.add(int(tid))
+                anchor = (((x1 + x2) / 2) / w, ((y1 + y2) / 2) / h)
+                self.counter.reclassify(int(tid), self.names[c])   # no-op unless the vote changed after counting
+                ev = self.counter.update(int(tid), self.names[c], anchor)
+                if ev:
+                    self.all_events.append(ev)
+                    crossed_ids.add(int(tid))
+            self.counter.forget(active)
+            line = (self.counter.a, self.counter.b)
+            totals = self.counter.snapshot(self.names)["total"]
+        self.in_frame = in_frame
+        self.frames += 1
+
