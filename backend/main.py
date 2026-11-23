@@ -179,3 +179,29 @@ async def stream(request: Request):
     """MJPEG stream of annotated frames: use directly as <img src>."""
     boundary = "frame"
 
+    async def gen():
+        global _active_streams
+        _active_streams += 1
+        try:
+            last = -1
+            idle_since = next_check = time.monotonic()
+            while True:
+                if processor.frame_id != last and processor.jpeg is not None:
+                    last, jpg = processor.frame_id, processor.jpeg
+                    idle_since = time.monotonic()
+                    yield (b"--" + boundary.encode() + b"\r\nContent-Type: image/jpeg\r\nContent-Length: "
+                           + str(len(jpg)).encode() + b"\r\n\r\n" + jpg + b"\r\n")
+                else:
+                    await asyncio.sleep(0.01)
+                    now = time.monotonic()
+                    # While no frames are flowing, nothing is written, so a closed client would go unnoticed:
+                    # check explicitly so abandoned streams end instead of piling up across Start/Stop cycles.
+                    if now >= next_check:
+                        next_check = now + 0.5
+                        if await request.is_disconnected():
+                            return
+                    if now - idle_since > 3600:   # nothing for an hour: end the response
+                        return
+        finally:
+            _active_streams -= 1
+
