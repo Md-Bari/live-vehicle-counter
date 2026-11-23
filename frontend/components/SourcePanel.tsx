@@ -89,3 +89,25 @@ export default function SourcePanel({ state, onStarted }: { state: PipelineState
               <strong>{upload.filename}</strong> · {upload.size_mb} MB · {upload.frames} frames @ {upload.fps.toFixed(0)} fps
             </p>
           )}
+          <label className="check">
+            <input type="checkbox" checked={loop} onChange={(e) => setLoop(e.target.checked)} disabled={running} />
+            Loop video
+          </label>
+        </div>
+      )}
+
+      {type === "camera" && (
+        <div className="field">
+          <div className="row">
+            <select value={camera} onChange={(e) => setCamera(e.target.value)} disabled={running}>
+              {(cameras ?? [{ index: 0, label: "Camera 0" }]).map((c) => (
+                <option key={c.index} value={c.index}>{c.label}</option>
+              ))}
+            </select>
+            <button className="btn ghost" onClick={probeCameras} disabled={busy || running}>Detect</button>
+          </div>
+          {cameras && cameras.length === 0 && <p className="hint warn">No cameras found on the backend machine.</p>}
+          <p className="hint">Uses a camera attached to the computer running the backend.</p>
+        </div>
+      )}
+
