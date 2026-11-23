@@ -300,3 +300,14 @@ class VideoProcessor:
         self.in_frame = in_frame
         self.frames += 1
 
+        img = self._annotate(frame, dets, line, totals, crossed_ids)
+        if img.shape[1] > STREAM_MAX_WIDTH:
+            s = STREAM_MAX_WIDTH / img.shape[1]
+            img = cv2.resize(img, (STREAM_MAX_WIDTH, int(img.shape[0] * s)), interpolation=cv2.INTER_AREA)
+        ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+        if ok:
+            with self.frame_cond:
+                self.jpeg = buf.tobytes()
+                self.frame_id += 1
+                self.frame_cond.notify_all()
+
