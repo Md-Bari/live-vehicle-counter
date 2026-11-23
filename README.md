@@ -34,3 +34,20 @@ The models are loaded from `../models/` (`vehicle_yolo26m.pt`, `vehicle_yolo26s.
 docker compose up -d --build        :: or double-click start_docker.bat
 ```
 
+If the build stops with `additional privileges requested` (Compose's *bake* builder on Windows paths), run `set COMPOSE_BAKE=false` first, or put `COMPOSE_BAKE=false` in `.env`. `start_docker.bat` already does this.
+
+Open **http://localhost:8088**. Everything goes through one port:
+
+| Path | Served by |
+|---|---|
+| `/` | dashboard (Next.js container) |
+| `/api/*`, `/ws/*` | FastAPI container (GPU) |
+| `/docs` | API docs (Swagger) |
+
+```
+browser ──► gateway (nginx :8088) ──┬──► frontend  (Next.js standalone, :3000)
+                                    └──► backend   (FastAPI + YOLO26 + CUDA, :8001)
+                                            ├─ ../models  mounted read-only at /models
+                                            └─ uploads    named volume at /data/uploads
+```
+
