@@ -13,3 +13,28 @@ export default function CountsPanel({ state }: { state: PipelineState | null }) 
     if (confirm("Reset all counts?")) await api.reset().catch((e) => alert(e.message));
   };
 
+  return (
+    <>
+      <div className="stats">
+        <div className="stat"><span>Total passed</span><strong>{total.total}</strong></div>
+        <div className="stat in"><span>IN</span><strong>{total.in}</strong></div>
+        <div className="stat out"><span>OUT</span><strong>{total.out}</strong></div>
+        <div className="stat muted">
+          <span>In view now</span>
+          <strong>{Object.values(state?.in_frame ?? {}).reduce((a, b) => a + b, 0)}</strong>
+        </div>
+      </div>
+
+      <section className="card">
+        <div className="card-head">
+          <h2>Counts by vehicle type</h2>
+          <div className="row">
+            <a className="btn ghost" href={api.csvUrl()} download>Download CSV</a>
+            <button className="btn ghost" onClick={reset}>Reset</button>
+          </div>
+        </div>
+        {visible.length === 0 ? (
+          <p className="hint">No vehicles yet. Counts appear here as tracked objects cross the line.</p>
+        ) : (
+          <table className="counts">
+            <thead>
