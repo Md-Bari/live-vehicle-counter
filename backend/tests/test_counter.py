@@ -34,3 +34,24 @@ def test_directions_and_classes():
     assert s["per_class"]["Car"]["total"] == 1 and s["per_class"]["Bus"]["total"] == 1
 
 
+def test_crossing_outside_segment_is_ignored():
+    c = LineCounter(a=(0.4, 0.5), b=(0.6, 0.5))      # short line in the middle
+    c.update(1, "Car", (0.1, 0.4))
+    assert c.update(1, "Car", (0.1, 0.6)) is None     # passes beside the line
+
+
+def test_landing_exactly_on_line_counts_once_after_passing():
+    c = LineCounter(a=(0, 0.5), b=(1, 0.5))
+    c.update(1, "Car", (0.5, 0.4))
+    assert c.update(1, "Car", (0.5, 0.5)) is None     # on the line
+    assert c.update(1, "Car", (0.5, 0.6)) is not None
+
+
+def test_reset_and_set_line():
+    c = LineCounter()
+    c.update(1, "Car", (0.5, 0.5)); c.update(1, "Car", (0.5, 0.7))
+    c.reset()
+    assert c.snapshot(NAMES)["total"]["total"] == 0
+    c.set_line((0.1, 0.1), (0.9, 0.9))
+    assert c.snapshot(NAMES)["line"] == {"a": [0.1, 0.1], "b": [0.9, 0.9]}
+
