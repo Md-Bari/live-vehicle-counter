@@ -37,3 +37,22 @@ class CrossingEvent:
     def as_dict(self) -> dict:
         return {"timestamp": self.timestamp, "track_id": self.track_id, "class": self.cls, "direction": self.direction}
 
+
+@dataclass
+class LineCounter:
+    """Counting line in normalized coordinates (0..1 of frame width/height)."""
+    a: Point = (0.0, 0.6)
+    b: Point = (1.0, 0.6)
+    max_events: int = 500
+    counts_in: Counter = field(default_factory=Counter)
+    counts_out: Counter = field(default_factory=Counter)
+    events: deque = field(default_factory=deque)
+    _last: dict = field(default_factory=dict)          # track_id -> last anchor point (normalized)
+    _counted: dict = field(default_factory=dict)       # (track_id, direction) -> CrossingEvent
+
+    def set_line(self, a: Point, b: Point) -> None:
+        if a == b:
+            raise ValueError("line endpoints must differ")
+        self.a, self.b = a, b
+        self.clear_positions()
+
