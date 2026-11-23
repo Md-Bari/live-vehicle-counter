@@ -55,3 +55,18 @@ def test_reset_and_set_line():
     c.set_line((0.1, 0.1), (0.9, 0.9))
     assert c.snapshot(NAMES)["line"] == {"a": [0.1, 0.1], "b": [0.9, 0.9]}
 
+
+def test_reclassify_moves_count_and_event():
+    c = LineCounter(a=(0.5, 0.0), b=(0.5, 1.0))
+    c.update(7, "Car", (0.4, 0.5))
+    ev = c.update(7, "Car", (0.6, 0.5))
+    assert ev is not None and c.counts_out["Car"] + c.counts_in["Car"] == 1
+    assert c.reclassify(7, "Pickup") is True
+    snap = c.snapshot(["Car", "Pickup"])
+    assert snap["per_class"]["Car"]["total"] == 0
+    assert snap["per_class"]["Pickup"]["total"] == 1
+    assert snap["total"]["total"] == 1                 # moved, not double counted
+    assert ev.cls == "Pickup" and c.events[-1].cls == "Pickup"
+    assert c.reclassify(7, "Pickup") is False          # already that class
+    assert c.reclassify(99, "Bus") is False            # never counted
+
