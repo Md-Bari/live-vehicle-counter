@@ -1,0 +1,9 @@
+# For machines without an NVIDIA GPU:
+#   docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --build
+# Inference runs on the CPU (expect a few FPS; choose YOLO26s in the dashboard).
+services:
+  backend:
+    build:
+      args:
+        TORCH_INDEX: https://download.pytorch.org/whl/cpu
+    deploy: !reset null
