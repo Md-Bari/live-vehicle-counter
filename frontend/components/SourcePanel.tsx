@@ -128,3 +128,19 @@ export default function SourcePanel({ state, onStarted }: { state: PipelineState
         </select>
       </div>
 
+      <div className="field">
+        <label htmlFor="conf">Confidence threshold <span className="num">{conf.toFixed(2)}</span></label>
+        <input id="conf" type="range" min={0.1} max={0.9} step={0.05} value={conf}
+               onChange={(e) => setConf(Number(e.target.value))} disabled={running} />
+      </div>
+
+      <div className="row">
+        {running
+          ? <button className="btn danger grow" onClick={stop} disabled={busy}>Stop</button>
+          : <button className="btn primary grow" onClick={start} disabled={!canStart}>{busy ? "Starting…" : "Start"}</button>}
+      </div>
+
+      {(error || state?.error) && <p className="error">{error || state?.error}</p>}
+    </section>
+  );
+}
