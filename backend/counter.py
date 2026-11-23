@@ -16,3 +16,24 @@ from dataclasses import dataclass, field
 Point = tuple[float, float]
 
 
+def _cross(o: Point, a: Point, b: Point) -> float:
+    return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+
+def segments_intersect(p1: Point, p2: Point, q1: Point, q2: Point) -> bool:
+    """True if segment p1-p2 properly crosses segment q1-q2 (touching an endpoint counts)."""
+    d1, d2 = _cross(q1, q2, p1), _cross(q1, q2, p2)
+    d3, d4 = _cross(p1, p2, q1), _cross(p1, p2, q2)
+    return d1 * d2 <= 0 and d3 * d4 <= 0 and not (d1 == 0 and d2 == 0)
+
+
+@dataclass
+class CrossingEvent:
+    timestamp: float
+    track_id: int
+    cls: str
+    direction: str  # "in" | "out"
+
+    def as_dict(self) -> dict:
+        return {"timestamp": self.timestamp, "track_id": self.track_id, "class": self.cls, "direction": self.direction}
+
