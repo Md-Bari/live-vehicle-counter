@@ -37,3 +37,24 @@ class SessionConfig:
     loop: bool = False        # replay files when they end
 
 
+class LatestFrameReader:
+    """Reads a live source on its own thread and keeps only the newest frame, so processing never lags behind."""
+
+    def __init__(self, cap: cv2.VideoCapture):
+        self.cap, self.frame, self.ok = cap, None, True
+        self._lock = threading.Lock()
+        self._new = threading.Event()
+        self._stop = False
+        threading.Thread(target=self._run, daemon=True).start()
+
+    def _run(self):
+        while not self._stop:
+            ok, frame = self.cap.read()
+            if not ok:
+                self.ok = False
+                self._new.set()
+                return
+            with self._lock:
+                self.frame = frame
+            self._new.set()
+
