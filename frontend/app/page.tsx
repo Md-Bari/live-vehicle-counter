@@ -38,3 +38,16 @@ export default function Home() {
         </div>
       </header>
 
+      <main className="layout">
+        <div className="main-col">
+          <VideoView state={state} streamKey={streamKey} />
+          <CountsPanel state={state} />
+        </div>
+        <aside className="side-col">
+          <SourcePanel state={state} onStarted={() => setStreamKey(Date.now())} />
+          <EventsLog state={state} />
+        </aside>
+      </main>
+    </div>
+  );
+}
