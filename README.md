@@ -51,3 +51,21 @@ browser ──► gateway (nginx :8088) ──┬──► frontend  (Next.js st
                                             └─ uploads    named volume at /data/uploads
 ```
 
+| Command | What it does |
+|---|---|
+| `docker compose logs -f backend` | follow the backend log |
+| `docker compose ps` | container status and health |
+| `docker compose down` | stop (uploaded videos are kept in the `uploads` volume) |
+| `docker compose down -v` | stop and delete uploaded videos |
+| `docker compose up -d --build` | rebuild after code changes |
+
+**Settings:** copy `.env.example` to `.env` to change the port (`APP_PORT`), the default model, or the models folder (`MODELS_PATH`). The first build downloads CUDA PyTorch (about 3 GB); later builds are cached.
+
+**No NVIDIA GPU:** `docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --build` builds a CPU-only image. It works, but expect a few FPS; pick YOLO26s.
+
+**Cameras in Docker:** Docker Desktop on Windows/macOS cannot pass a USB webcam into a container. Use a video file or an IP camera/RTSP URL (phone IP-camera apps work), or run the backend natively for a webcam. On a Linux host, uncomment the `devices:` entry in `docker-compose.yml`. Inside a container, `localhost` means the container itself: for a stream served by the host machine use `host.docker.internal` instead.
+
+## Run natively
+
+**Requirements:** Python 3.10+ with a CUDA build of PyTorch, and Node.js 20+.
+
