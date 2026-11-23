@@ -14,3 +14,26 @@ export function wsUrl(): string {
 export type Direction = "in" | "out";
 export type ClassCount = { in: number; out: number; total: number };
 
+export interface CrossingEvent {
+  timestamp: number;
+  track_id: number;
+  class: string;
+  direction: Direction;
+}
+
+export interface PipelineState {
+  status: "idle" | "starting" | "running" | "finished" | "error";
+  error: string | null;
+  source: { type: string; source: string; model: string; conf: number } | null;
+  fps: number;
+  frames: number;
+  frame_size: [number, number] | null;
+  in_frame: Record<string, number>;
+  counts: {
+    line: { a: [number, number]; b: [number, number] };
+    total: ClassCount;
+    per_class: Record<string, ClassCount>;
+  };
+  recent_events: CrossingEvent[];
+}
+
