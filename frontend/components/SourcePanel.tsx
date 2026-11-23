@@ -111,3 +111,20 @@ export default function SourcePanel({ state, onStarted }: { state: PipelineState
         </div>
       )}
 
+      {type === "url" && (
+        <div className="field">
+          <input type="text" placeholder="rtsp://user:pass@192.168.1.10:554/stream" value={url}
+                 onChange={(e) => setUrl(e.target.value)} disabled={running} spellCheck={false} />
+          <p className="hint">RTSP / RTMP / HTTP stream, e.g. a CCTV or phone IP-camera app.</p>
+        </div>
+      )}
+
+      <div className="field">
+        <label htmlFor="model">Model</label>
+        <select id="model" value={model} onChange={(e) => setModel(e.target.value)} disabled={running}>
+          {models.map((m) => (
+            <option key={m.id} value={m.id} disabled={!m.available}>{m.label}{m.available ? "" : " (missing)"}</option>
+          ))}
+        </select>
+      </div>
+
