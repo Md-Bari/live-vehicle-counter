@@ -1,0 +1,16 @@
+# Vehicle Counter: docker compose up -d --build   →   http://localhost:8088
+name: vehicle-counter
+
+services:
+  backend:
+    build: ./backend
+    image: vehicle-counter-backend:latest
+    environment:
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-yolo26m}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+    volumes:
+      - ${MODELS_PATH:-../models}:/models:ro     # vehicle_yolo26m.pt / vehicle_yolo26s.pt
+      - uploads:/data/uploads
+    shm_size: 1gb
+    deploy:
+      resources:
