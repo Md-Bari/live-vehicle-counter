@@ -145,3 +145,22 @@ def stop():
     return processor.state()
 
 
+@app.post("/api/line")
+def set_line(req: LineRequest):
+    try:
+        processor.set_line(req.a, req.b)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return processor.state()["counts"]["line"]
+
+
+@app.post("/api/reset")
+def reset():
+    processor.reset_counts()
+    return processor.state()
+
+
+@app.get("/api/state")
+def state():
+    return processor.state()
+
