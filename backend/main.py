@@ -164,3 +164,18 @@ def reset():
 def state():
     return processor.state()
 
+
+@app.get("/api/events.csv", response_class=PlainTextResponse)
+def events_csv():
+    return PlainTextResponse(processor.events_csv(), media_type="text/csv",
+                             headers={"Content-Disposition": f'attachment; filename="vehicle_counts_{time.strftime("%Y%m%d_%H%M%S")}.csv"'})
+
+
+_active_streams = 0   # open MJPEG connections (reported by /api/health)
+
+
+@app.get("/api/stream")
+async def stream(request: Request):
+    """MJPEG stream of annotated frames: use directly as <img src>."""
+    boundary = "frame"
+
