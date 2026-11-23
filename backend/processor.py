@@ -256,3 +256,28 @@ class VideoProcessor:
             self.status, self.error = "error", str(e)
         finally:
             if reader:
+                reader.stop()
+            if cap:
+                cap.release()
+            if self.status == "running":
+                self.status = "idle"
+
+    def _process(self, model, imgsz, conf, frame: np.ndarray):
+        h, w = frame.shape[:2]
+        self.frame_size = (w, h)
+        res = model.track(frame, imgsz=imgsz, conf=conf, persist=True, tracker="bytetrack.yaml", verbose=False)[0]
+        boxes = res.boxes
+        in_frame = Counter()
+        dets = []
+        if boxes is not None and len(boxes):
+            xyxy = boxes.xyxy.cpu().numpy()
+            cls = boxes.cls.cpu().numpy().astype(int)
+            confs = boxes.conf.cpu().numpy()
+            ids = boxes.id.cpu().numpy().astype(int) if boxes.id is not None else [None] * len(cls)
+            for (x1, y1, x2, y2), c, s, tid in zip(xyxy, cls, confs, ids):
+                if tid is not None:
+                    c = self.voter.update(int(tid), int(c), float(s), self.frames)   # stable class per track
+                dets.append((x1, y1, x2, y2, c, s, tid))
+                in_frame[self.names[c]] += 1
+        self.voter.prune(self.frames)
+
