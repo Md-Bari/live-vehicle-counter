@@ -93,3 +93,19 @@ def list_cameras(max_index: int = 4):
         cap.release()
     return found
 
+
+@app.post("/api/upload")
+async def upload_video(file: UploadFile = File(...)):
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in VIDEO_EXTS:
+        raise HTTPException(400, f"unsupported file type {ext!r}; allowed: {sorted(VIDEO_EXTS)}")
+    safe = re.sub(r"[^A-Za-z0-9._-]", "_", Path(file.filename).stem)[:60]
+    file_id = f"{uuid.uuid4().hex[:8]}_{safe}{ext}"
+    dest = UPLOAD_DIR / file_id
+    size, limit = 0, MAX_UPLOAD_MB * 1024 * 1024
+    with dest.open("wb") as f:
+        while chunk := await file.read(1024 * 1024):
+            size += len(chunk)
+            if size > limit:
+                f.close(); dest.unlink(missing_ok=True)
+                raise HTTPException(413, f"file larger than {MAX_UPLOAD_MB} MB")
