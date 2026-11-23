@@ -205,3 +205,18 @@ async def stream(request: Request):
         finally:
             _active_streams -= 1
 
+    return StreamingResponse(gen(), media_type=f"multipart/x-mixed-replace; boundary={boundary}",
+                             headers={"Cache-Control": "no-cache, no-store", "Pragma": "no-cache",
+                                      "X-Accel-Buffering": "no"})
+
+
+@app.websocket("/ws/state")
+async def ws_state(ws: WebSocket):
+    """Pushes the pipeline state (counts, fps, recent events) 4 times per second."""
+    await ws.accept()
+    try:
+        while True:
+            await ws.send_json(processor.state())
+            await asyncio.sleep(0.25)
+    except (WebSocketDisconnect, RuntimeError):
+        pass
