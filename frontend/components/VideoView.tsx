@@ -96,3 +96,22 @@ export default function VideoView({ state, streamKey }: { state: PipelineState |
           <MjpegStream src={api.streamUrl(streamKey)} />
         ) : (
           <div className="placeholder">
+            <p>No video running</p>
+            <span>Choose a source and press <strong>Start</strong>. You can place the counting line now or while it runs.</span>
+          </div>
+        )}
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+          {b && (
+            <line x1={a[0] * W} y1={a[1] * H} x2={b[0] * W} y2={b[1] * H}
+                  className={drawing ? "count-line preview" : "count-line"} strokeWidth={sw} />
+          )}
+          {drawing && first && <circle cx={first[0] * W} cy={first[1] * H} r={sw * 3} className="line-dot" />}
+          {arrows && (
+            <g className="dir" style={{ fontSize: Math.max(16, W / 50) }}>
+              <line x1={arrows.mid[0]} y1={arrows.mid[1]} x2={arrows.inP[0]} y2={arrows.inP[1]}
+                    className="dir-halo" strokeWidth={sw * 3} />
