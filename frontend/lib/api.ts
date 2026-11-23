@@ -70,3 +70,21 @@ export const api = {
   csvUrl: () => `${API_URL}/api/events.csv`,
   streamUrl: (key: number) => `${API_URL}/api/stream?k=${key}`,
 
+  /** Upload with progress (fetch has no upload progress). */
+  upload: (file: File, onProgress: (pct: number) => void) =>
+    new Promise<UploadResult>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append("file", file);
+      xhr.open("POST", `${API_URL}/api/upload`);
+      xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
+      xhr.onload = () => {
+        let body: { detail?: unknown } & Partial<UploadResult> = {};
+        try { body = JSON.parse(xhr.responseText); } catch { /* ignore */ }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(body as UploadResult);
+        else reject(new Error(typeof body.detail === "string" ? body.detail : `upload failed (${xhr.status})`));
+      };
+      xhr.onerror = () => reject(new Error("upload failed: backend unreachable"));
+      xhr.send(fd);
+    }),
+};
