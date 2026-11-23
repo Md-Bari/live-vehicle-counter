@@ -239,3 +239,20 @@ class VideoProcessor:
                     if not ok or frame is None:
                         raise RuntimeError("video stream ended or camera disconnected")
 
+                self._process(model, imgsz, cfg.conf, frame)
+
+                now = time.perf_counter()
+                dt = now - t_prev; t_prev = now
+                self.fps = 0.9 * self.fps + 0.1 * (1.0 / dt) if self.fps else 1.0 / max(dt, 1e-6)
+                if is_file:  # play files at their native speed, like a live feed
+                    next_due += 1.0 / src_fps
+                    delay = next_due - time.perf_counter()
+                    if delay > 0:
+                        time.sleep(delay)
+                    else:
+                        next_due = time.perf_counter()
+        except Exception as e:  # surfaced to the UI
+            log.exception("pipeline failed")
+            self.status, self.error = "error", str(e)
+        finally:
+            if reader:
