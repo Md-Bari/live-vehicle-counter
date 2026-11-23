@@ -69,3 +69,24 @@ browser ──► gateway (nginx :8088) ──┬──► frontend  (Next.js st
 
 **Requirements:** Python 3.10+ with a CUDA build of PyTorch, and Node.js 20+.
 
+```bat
+:: one-time setup
+pip install -r backend\requirements.txt
+cd frontend && npm install && npm run build && cd ..
+
+:: every time
+start_app.bat
+```
+
+Or start the two servers yourself:
+
+```bat
+cd backend  && python -m uvicorn main:app --host 0.0.0.0 --port 8001
+cd frontend && npm run start        :: or: npm run dev
+```
+
+| Part | URL |
+|---|---|
+| Dashboard | http://localhost:3000 |
+| API docs (Swagger) | http://localhost:8001/docs |
+
