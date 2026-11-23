@@ -30,3 +30,29 @@ export default function SourcePanel({ state, onStarted }: { state: PipelineState
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const probeCameras = async () => {
+    setError(null); setCameras(null); setBusy(true);
+    try {
+      const c = await api.cameras();
+      setCameras(c);
+      if (c.length) setCamera(String(c[0].index));
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+
+  const onFile = async (f: File | undefined) => {
+    if (!f) return;
+    setError(null); setUpload(null); setProgress(0);
+    try { setUpload(await api.upload(f, setProgress)); }
+    catch (e) { setError((e as Error).message); }
+    finally { setProgress(null); }
+  };
+
+  const start = async () => {
+    setError(null); setBusy(true);
+    try {
+      const source = type === "camera" ? camera : type === "url" ? url : upload?.file_id ?? "";
+      await api.start({ source_type: type, source, model, conf, loop });
+      onStarted();
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+
