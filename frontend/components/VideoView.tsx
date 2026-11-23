@@ -75,3 +75,24 @@ export default function VideoView({ state, streamKey }: { state: PipelineState |
   }
   const sw = Math.max(2, W / 400);
 
+  return (
+    <section className="card video-card">
+      <div className="video-toolbar">
+        <h2>Live view</h2>
+        <div className="row">
+          <button className={drawing ? "btn primary" : "btn ghost"}
+                  onClick={() => { setDrawing(!drawing); setFirst(null); setHover(null); }}>
+            {drawing ? (first ? "Click the end point…" : "Click the start point…") : "Draw counting line"}
+          </button>
+          <button className="btn ghost" onClick={() => save([0, 0.6], [1, 0.6])} title="Horizontal line at 60% height">─ Horizontal</button>
+          <button className="btn ghost" onClick={() => save([0.5, 0], [0.5, 1])} title="Vertical line in the middle">│ Vertical</button>
+        </div>
+      </div>
+
+      <div ref={box} className={`video-box${drawing ? " drawing" : ""}`} style={{ aspectRatio: `${W} / ${H}` }}
+           onClick={onClick} onMouseMove={(e) => drawing && first && setHover(toNorm(e))}>
+        {live || hasFrame ? (
+          // new URL on every start so the browser opens a fresh stream (the old one is closed first)
+          <MjpegStream src={api.streamUrl(streamKey)} />
+        ) : (
+          <div className="placeholder">
