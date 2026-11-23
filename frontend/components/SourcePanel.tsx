@@ -56,3 +56,14 @@ export default function SourcePanel({ state, onStarted }: { state: PipelineState
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
 
+  const stop = async () => {
+    setBusy(true);
+    try { await api.stop(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+
+  const canStart = !busy && !running && (type === "camera" ? camera !== "" : type === "url" ? url.trim() !== "" : !!upload);
+
+  return (
+    <section className="card">
+      <h2>Video source</h2>
+
