@@ -221,3 +221,21 @@ class VideoProcessor:
             self.status = "running"
             t_prev, next_due = time.perf_counter(), time.perf_counter()
 
+            while not self._stop.is_set():
+                if is_file:
+                    ok, frame = cap.read()
+                    if not ok:
+                        if cfg.loop:
+                            # Rewind. Track ids keep increasing (tracker not reset), so each pass counts again;
+                            # positions are cleared so the jump from last to first frame is not seen as a crossing.
+                            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                            with self.lock:
+                                self.counter.clear_positions()
+                            continue
+                        self.status = "finished"
+                        break
+                else:
+                    ok, frame = reader.read()
+                    if not ok or frame is None:
+                        raise RuntimeError("video stream ended or camera disconnected")
+
