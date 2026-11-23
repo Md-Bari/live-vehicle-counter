@@ -126,3 +126,21 @@ To try the app without a road video, run `python tools/make_demo_video.py`. It b
 | POST | `/api/start` | `{source_type: camera\|url\|file, source, model, conf, loop}` |
 | POST | `/api/stop` | stop the pipeline |
 | POST | `/api/line` | `{a: [x, y], b: [x, y]}` in 0–1 frame coordinates |
+| POST | `/api/reset` | clear the counts |
+| GET | `/api/state` | current counts, FPS and recent events |
+| GET | `/api/stream` | MJPEG annotated video (use as `<img src>`) |
+| GET | `/api/events.csv` | every crossing as CSV |
+| WS | `/ws/state` | state pushed 4 times per second |
+
+## Tests
+
+```bat
+cd backend
+python -m pytest tests -q
+```
+
+## Notes and limits
+
+- One video pipeline runs at a time, and everyone viewing the dashboard sees the same session.
+- Counting accuracy depends on camera placement. A fixed camera looking along or across the road, with the line drawn where vehicles are well separated, works best. Heavily overlapping traffic can cause missed or swapped track IDs.
+- Counts live in memory and reset when you press Start or restart the backend. Export the CSV to keep them.
