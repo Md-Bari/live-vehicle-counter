@@ -101,3 +101,19 @@ class ClassVoter:
             self._cls[track_id] = cur = best
         return cur
 
+    def prune(self, frame_idx: int) -> None:
+        """Forget tracks not seen for `ttl_frames` (ByteTrack may revive a lost id within its buffer)."""
+        for tid in [t for t, f in self._seen.items() if frame_idx - f > self.ttl]:
+            del self._votes[tid], self._seen[tid], self._cls[tid]
+
+
+class VideoProcessor:
+    def __init__(self):
+        self.counter = LineCounter()
+        self.lock = threading.Lock()                 # guards counter + stats
+        self.frame_cond = threading.Condition()
+        self.jpeg: bytes | None = None
+        self.frame_id = 0
+        self.status = "idle"                         # idle | starting | running | finished | error
+        self.error: str | None = None
+        self.config: SessionConfig | None = None
