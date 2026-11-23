@@ -18,3 +18,22 @@ function MjpegStream({ src }: { src: string }) {
   useEffect(() => {
     const img = ref.current;
     if (!img) return;
+    img.src = src;
+    return () => { img.src = BLANK; };
+  }, [src]);
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img ref={ref} alt="Annotated live video" draggable={false} />;
+}
+
+export default function VideoView({ state, streamKey }: { state: PipelineState | null; streamKey: number }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [first, setFirst] = useState<Pt | null>(null);
+  const [hover, setHover] = useState<Pt | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [W, H] = state?.frame_size ?? [1280, 720];
+  const live = state?.status === "running" || state?.status === "starting";
+  const hasFrame = (state?.frames ?? 0) > 0;
+  const line = state?.counts.line ?? { a: [0, 0.6] as Pt, b: [1, 0.6] as Pt };
+
