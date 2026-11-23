@@ -14,3 +14,15 @@ import numpy as np
 PROJECT = Path(__file__).resolve().parents[2]
 TEST = PROJECT / "dataset" / "test"
 
+
+def busiest_images(n):
+    scored = []
+    for lbl in (TEST / "labels").glob("*.txt"):
+        k = sum(1 for l in lbl.read_text().splitlines() if l.strip())
+        img = TEST / "images" / (lbl.stem + ".jpg")
+        if img.exists():
+            scored.append((k, img))
+    scored.sort(reverse=True)
+    return [p for _, p in scored[:n]]
+
+
