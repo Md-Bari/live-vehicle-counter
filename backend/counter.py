@@ -56,3 +56,22 @@ class LineCounter:
         self.a, self.b = a, b
         self.clear_positions()
 
+    def reset(self) -> None:
+        self.counts_in.clear(); self.counts_out.clear(); self.events.clear()
+        self._last.clear(); self._counted.clear()
+
+    def update(self, track_id: int, cls: str, point: Point, now: float | None = None) -> CrossingEvent | None:
+        """Feed the current anchor point of one track; returns an event if it just crossed the line."""
+        prev = self._last.get(track_id)
+        self._last[track_id] = point
+        if prev is None or not segments_intersect(prev, point, self.a, self.b):
+            return None
+        side_now = _cross(self.a, self.b, point)
+        if side_now == 0:
+            return None  # on the line: wait until it is clearly past
+        direction = "in" if side_now > 0 else "out"
+        key = (track_id, direction)
+        if key in self._counted:
+            return None
+        (self.counts_in if direction == "in" else self.counts_out)[cls] += 1
+        ev = CrossingEvent(now if now is not None else time.time(), track_id, cls, direction)
