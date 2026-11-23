@@ -97,3 +97,20 @@ class LineCounter:
             changed = True
         return changed
 
+    def clear_positions(self) -> None:
+        """Forget last positions (e.g. after a video rewinds) without touching counts."""
+        self._last.clear()
+
+    def forget(self, active_ids: set[int]) -> None:
+        """Drop last positions of tracks that are gone (keeps memory bounded)."""
+        for tid in list(self._last):
+            if tid not in active_ids:
+                del self._last[tid]
+
+    def snapshot(self, names: list[str]) -> dict:
+        per_class = {n: {"in": self.counts_in[n], "out": self.counts_out[n],
+                         "total": self.counts_in[n] + self.counts_out[n]} for n in names}
+        tin, tout = sum(self.counts_in.values()), sum(self.counts_out.values())
+        return {"line": {"a": list(self.a), "b": list(self.b)},
+                "total": {"in": tin, "out": tout, "total": tin + tout},
+                "per_class": per_class}
