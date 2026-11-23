@@ -19,3 +19,14 @@ export default function SourcePanel({ state, onStarted }: { state: PipelineState
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const running = state?.status === "running" || state?.status === "starting";
+
+  useEffect(() => {
+    api.models().then((m) => {
+      setModels(m);
+      const first = m.find((x) => x.available);
+      if (first && !m.find((x) => x.id === model && x.available)) setModel(first.id);
+    }).catch((e) => setError(`Backend unreachable: ${e.message}`));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
