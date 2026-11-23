@@ -67,3 +67,25 @@ export default function SourcePanel({ state, onStarted }: { state: PipelineState
     <section className="card">
       <h2>Video source</h2>
 
+      <div className="tabs" role="tablist">
+        {(["file", "camera", "url"] as SourceType[]).map((t) => (
+          <button key={t} role="tab" aria-selected={type === t} className={type === t ? "tab active" : "tab"}
+                  onClick={() => setType(t)} disabled={running}>
+            {t === "file" ? "Video file" : t === "camera" ? "Webcam" : "IP camera / URL"}
+          </button>
+        ))}
+      </div>
+
+      {type === "file" && (
+        <div className="field">
+          <label className="file-drop">
+            <input type="file" accept="video/*" disabled={running || progress !== null}
+                   onChange={(e) => onFile(e.target.files?.[0])} />
+            <span>{progress !== null ? `Uploading… ${progress}%` : upload ? "Choose another video" : "Choose a video file"}</span>
+          </label>
+          {progress !== null && <div className="progress"><div style={{ width: `${progress}%` }} /></div>}
+          {upload && (
+            <p className="hint">
+              <strong>{upload.filename}</strong> · {upload.size_mb} MB · {upload.frames} frames @ {upload.fps.toFixed(0)} fps
+            </p>
+          )}
