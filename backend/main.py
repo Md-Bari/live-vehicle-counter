@@ -73,3 +73,23 @@ def health():
     return {"status": "ok", "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
             "pipeline": processor.status, "streams": _active_streams}
 
+
+@app.get("/api/models")
+def list_models():
+    return [{"id": k, "label": v["label"], "imgsz": v["imgsz"], "available": v["path"].exists()}
+            for k, v in MODELS.items()]
+
+
+@app.get("/api/cameras")
+def list_cameras(max_index: int = 4):
+    """Probe local camera indices (on the machine running the backend)."""
+    found = []
+    for i in range(max_index):
+        cap = open_camera(i)
+        if cap.isOpened():
+            ok, _ = cap.read()
+            if ok:
+                found.append({"index": i, "label": f"Camera {i}"})
+        cap.release()
+    return found
+
