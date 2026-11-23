@@ -54,3 +54,22 @@ class StartRequest(BaseModel):
         return v
 
 
+class LineRequest(BaseModel):
+    a: tuple[float, float]
+    b: tuple[float, float]
+
+    @field_validator("a", "b")
+    @classmethod
+    def normalized(cls, v):
+        if not all(0.0 <= c <= 1.0 for c in v):
+            raise ValueError("coordinates must be normalized to 0..1")
+        return v
+
+
+# ------------------------------------------------------------------ routes
+@app.get("/api/health")
+def health():
+    import torch
+    return {"status": "ok", "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+            "pipeline": processor.status, "streams": _active_streams}
+
