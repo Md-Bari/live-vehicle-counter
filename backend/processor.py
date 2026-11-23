@@ -117,3 +117,28 @@ class VideoProcessor:
         self.status = "idle"                         # idle | starting | running | finished | error
         self.error: str | None = None
         self.config: SessionConfig | None = None
+        self.names: list[str] = []
+        self.fps = 0.0
+        self.frames = 0
+        self.in_frame: Counter = Counter()
+        self.frame_size: tuple[int, int] | None = None
+        self.all_events: deque = deque(maxlen=100_000)   # for CSV export
+        self._thread: threading.Thread | None = None
+        self._stop = threading.Event()
+        self.voter = ClassVoter(1)
+
+    # ---------------------------------------------------------------- control
+    def start(self, cfg: SessionConfig):
+        self.stop()
+        if cfg.model not in MODELS:
+            raise ValueError(f"unknown model {cfg.model!r}")
+        self._stop.clear()
+        self.config, self.status, self.error = cfg, "starting", None
+        self.fps, self.frames, self.frame_size = 0.0, 0, None
+        self.in_frame = Counter()
+        with self.lock:
+            self.counter.reset()
+            self.all_events.clear()
+        self._thread = threading.Thread(target=self._run, args=(cfg,), daemon=True)
+        self._thread.start()
+
