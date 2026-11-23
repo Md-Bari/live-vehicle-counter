@@ -115,3 +115,23 @@ export default function VideoView({ state, streamKey }: { state: PipelineState |
             <g className="dir" style={{ fontSize: Math.max(16, W / 50) }}>
               <line x1={arrows.mid[0]} y1={arrows.mid[1]} x2={arrows.inP[0]} y2={arrows.inP[1]}
                     className="dir-halo" strokeWidth={sw * 3} />
+              <line x1={arrows.mid[0]} y1={arrows.mid[1]} x2={arrows.outP[0]} y2={arrows.outP[1]}
+                    className="dir-halo" strokeWidth={sw * 3} />
+              <line x1={arrows.mid[0]} y1={arrows.mid[1]} x2={arrows.inP[0]} y2={arrows.inP[1]}
+                    className="dir-in" strokeWidth={sw * 1.5} markerEnd="url(#arrow)" />
+              <line x1={arrows.mid[0]} y1={arrows.mid[1]} x2={arrows.outP[0]} y2={arrows.outP[1]}
+                    className="dir-out" strokeWidth={sw * 1.5} markerEnd="url(#arrow)" />
+              <text x={arrows.inP[0]} y={arrows.inP[1]} className="dir-in-text"
+                    dx={(arrows.inP[0] - arrows.mid[0]) * 0.35} dy={(arrows.inP[1] - arrows.mid[1]) * 0.35 + 6}
+                    textAnchor="middle" dominantBaseline="middle">IN</text>
+              <text x={arrows.outP[0]} y={arrows.outP[1]} className="dir-out-text"
+                    dx={(arrows.outP[0] - arrows.mid[0]) * 0.45} dy={(arrows.outP[1] - arrows.mid[1]) * 0.45}
+                    textAnchor="middle" dominantBaseline="middle">OUT</text>
+            </g>
+          )}
+        </svg>
+      </div>
+      {error && <p className="error">{error}</p>}
+    </section>
+  );
+}
