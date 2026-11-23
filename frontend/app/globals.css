@@ -97,3 +97,25 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .progress { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
 .progress div { height: 100%; background: var(--accent); transition: width .2s; }
 
+/* video */
+.video-card { padding-bottom: 16px; }
+.video-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.video-toolbar h2 { margin: 0; }
+.video-box {
+  position: relative; width: 100%; max-height: 70vh; background: #000; border-radius: 8px; overflow: hidden;
+  margin: 0 auto;
+}
+.video-box.drawing { cursor: crosshair; outline: 2px solid var(--accent); outline-offset: 2px; }
+.video-box img, .video-box svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.video-box img { object-fit: fill; user-select: none; }
+.video-box svg { pointer-events: none; }
+.placeholder {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: var(--muted); text-align: center; padding: 20px;
+  background: repeating-linear-gradient(45deg, #0b0f14, #0b0f14 12px, #0e131a 12px, #0e131a 24px);
+}
+.placeholder p { margin: 0; font-size: 16px; color: var(--text); }
+.count-line { stroke: var(--accent); stroke-linecap: round; opacity: .55; }
+.count-line.preview { opacity: 1; stroke-dasharray: 12 8; }
+.line-dot { fill: var(--accent); }
+.dir { font-weight: 700; paint-order: stroke; }
