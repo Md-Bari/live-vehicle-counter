@@ -82,3 +82,22 @@ class ClassVoter:
     On the demo video this cut label switches by 80% (137 -> 28).
     """
 
+    def __init__(self, n_classes: int, decay: float = 0.99, margin: float = 2.0, ttl_frames: int = 150):
+        self.n, self.decay, self.margin, self.ttl = n_classes, decay, margin, ttl_frames
+        self._votes: dict[int, np.ndarray] = {}
+        self._seen: dict[int, int] = {}
+        self._cls: dict[int, int] = {}
+
+    def update(self, track_id: int, cls: int, conf: float, frame_idx: int) -> int:
+        v = self._votes.get(track_id)
+        if v is None:
+            v = self._votes[track_id] = np.zeros(self.n, dtype=np.float32)
+        else:
+            v *= self.decay ** (frame_idx - self._seen[track_id])
+        v[cls] += conf
+        self._seen[track_id] = frame_idx
+        best, cur = int(v.argmax()), self._cls.get(track_id)
+        if cur is None or (best != cur and v[best] > v[cur] * self.margin):
+            self._cls[track_id] = cur = best
+        return cur
+
