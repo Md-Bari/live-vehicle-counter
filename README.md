@@ -16,3 +16,21 @@ app/
 │   ├── app/page.tsx        dashboard
 │   ├── components/         VideoView, SourcePanel, CountsPanel, EventsLog
 │   └── lib/                API client, WebSocket hook
+├── nginx/default.conf      Docker gateway: / → frontend, /api + /ws → backend
+├── docker-compose.yml      full system in Docker (GPU)
+├── docker-compose.cpu.yml  override for machines without an NVIDIA GPU
+├── tools/make_demo_video.py   builds a demo clip from dataset images
+├── start_docker.bat        builds and starts the Docker stack, opens the browser
+└── start_app.bat           starts both servers natively and opens the browser
+```
+
+The models are loaded from `../models/` (`vehicle_yolo26m.pt`, `vehicle_yolo26s.pt`).
+
+## Run with Docker (recommended)
+
+**Requirements:** Docker Desktop (WSL 2 backend on Windows) or Docker Engine + the NVIDIA Container Toolkit on Linux, and an NVIDIA driver. No Python or Node.js needed.
+
+```bat
+docker compose up -d --build        :: or double-click start_docker.bat
+```
+
