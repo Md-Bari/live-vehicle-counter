@@ -37,3 +37,23 @@ export interface PipelineState {
   recent_events: CrossingEvent[];
 }
 
+export interface ModelInfo { id: string; label: string; imgsz: number; available: boolean }
+export interface Camera { index: number; label: string }
+export interface UploadResult { file_id: string; filename: string; size_mb: number; frames: number; fps: number }
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: init?.body && !(init.body instanceof FormData) ? { "Content-Type": "application/json" } : undefined,
+  });
+  if (!res.ok) {
+    let msg = `${res.status} ${res.statusText}`;
+    try {
+      const body = await res.json();
+      msg = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail ?? body);
+    } catch { /* not JSON */ }
+    throw new Error(msg);
+  }
+  return res.json() as Promise<T>;
+}
+
