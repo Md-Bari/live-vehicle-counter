@@ -142,3 +142,20 @@ class VideoProcessor:
         self._thread = threading.Thread(target=self._run, args=(cfg,), daemon=True)
         self._thread.start()
 
+    def stop(self):
+        self._stop.set()
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=10)
+        self._thread = None
+        if self.status in ("running", "starting"):
+            self.status = "idle"
+
+    def set_line(self, a, b):
+        with self.lock:
+            self.counter.set_line(tuple(a), tuple(b))
+
+    def reset_counts(self):
+        with self.lock:
+            self.counter.reset()
+            self.all_events.clear()
+
