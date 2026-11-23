@@ -14,3 +14,21 @@ services:
     shm_size: 1gb
     deploy:
       resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Linux host with a USB/CSI camera: uncomment to make it available as camera 0
+    # devices:
+    #   - /dev/video0:/dev/video0
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ""                  # same origin, via the gateway
+    image: vehicle-counter-frontend:latest
+    restart: unless-stopped
+
