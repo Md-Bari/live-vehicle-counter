@@ -36,3 +36,18 @@ def pan_video(tmp_path_factory):
     vw.release()
     return out
 
+
+def test_health_and_models(client):
+    assert client.get("/api/health").json()["status"] == "ok"
+    models = client.get("/api/models").json()
+    assert {m["id"] for m in models} == {"yolo26m", "yolo26s"}
+    assert all(m["available"] for m in models)
+
+
+def test_validation(client):
+    assert client.post("/api/start", json={"source_type": "camera", "source": "abc"}).status_code == 400
+    assert client.post("/api/start", json={"source_type": "url", "source": "file:///etc/passwd"}).status_code == 400
+    assert client.post("/api/start", json={"source_type": "file", "source": "missing.mp4"}).status_code == 404
+    assert client.post("/api/line", json={"a": [0, 0], "b": [2, 1]}).status_code == 422
+    assert client.post("/api/upload", files={"file": ("x.txt", b"hi", "text/plain")}).status_code == 400
+
