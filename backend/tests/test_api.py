@@ -51,3 +51,21 @@ def test_validation(client):
     assert client.post("/api/line", json={"a": [0, 0], "b": [2, 1]}).status_code == 422
     assert client.post("/api/upload", files={"file": ("x.txt", b"hi", "text/plain")}).status_code == 400
 
+
+@pytest.mark.parametrize("model", ["yolo26s", "yolo26m"])
+def test_upload_run_and_count(client, pan_video, model):
+    up = client.post("/api/upload", files={"file": ("pan.mp4", pan_video.read_bytes(), "video/mp4")})
+    assert up.status_code == 200, up.text
+    file_id = up.json()["file_id"]
+
+    assert client.post("/api/line", json={"a": [0.5, 0.0], "b": [0.5, 1.0]}).status_code == 200
+    r = client.post("/api/start", json={"source_type": "file", "source": file_id, "model": model, "conf": 0.3})
+    assert r.status_code == 200, r.text
+
+    deadline = time.time() + 120
+    while time.time() < deadline:
+        st = client.get("/api/state").json()
+        if st["status"] in ("finished", "error"):
+            break
+        time.sleep(0.5)
+    assert st["status"] == "finished", st
