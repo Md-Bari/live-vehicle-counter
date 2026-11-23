@@ -34,3 +34,23 @@ async def lifespan(_: FastAPI):
     processor.stop()
 
 
+app = FastAPI(title="Vehicle Counter API", version="1.0.0", lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["*"], allow_headers=["*"])
+
+
+# ------------------------------------------------------------------ schemas
+class StartRequest(BaseModel):
+    source_type: Literal["camera", "url", "file"]
+    source: str = Field(..., description="camera index (e.g. '0'), stream URL (rtsp/http), or file_id from /api/upload")
+    model: str = DEFAULT_MODEL
+    conf: float = Field(0.35, ge=0.05, le=0.95)
+    loop: bool = False
+
+    @field_validator("model")
+    @classmethod
+    def known_model(cls, v):
+        if v not in MODELS:
+            raise ValueError(f"model must be one of {list(MODELS)}")
+        return v
+
+
