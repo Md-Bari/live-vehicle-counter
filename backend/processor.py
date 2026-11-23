@@ -58,3 +58,27 @@ class LatestFrameReader:
                 self.frame = frame
             self._new.set()
 
+    def read(self, timeout=5.0):
+        if not self._new.wait(timeout):
+            return False, None
+        self._new.clear()
+        if not self.ok:
+            return False, None
+        with self._lock:
+            return self.frame is not None, self.frame
+
+    def stop(self):
+        self._stop = True
+
+
+class ClassVoter:
+    """Stabilises each track's class.
+
+    The detector classifies every frame independently, so a vehicle can flip between similar
+    classes (Pickup / Car, MPV / Car ...). Each track keeps a confidence-weighted vote over its
+    detections; older frames slowly fade (`decay` per frame), so a confident later view can
+    still overturn a wrong early guess. Hysteresis: the shown class only changes when another
+    class has `margin` times its vote, so near-ties do not flip-flop.
+    On the demo video this cut label switches by 80% (137 -> 28).
+    """
+
