@@ -109,3 +109,22 @@ async def upload_video(file: UploadFile = File(...)):
             if size > limit:
                 f.close(); dest.unlink(missing_ok=True)
                 raise HTTPException(413, f"file larger than {MAX_UPLOAD_MB} MB")
+            f.write(chunk)
+    cap = cv2.VideoCapture(str(dest))
+    ok = cap.isOpened() and cap.read()[0]
+    info = {"frames": int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), "fps": cap.get(cv2.CAP_PROP_FPS)}
+    cap.release()
+    if not ok:
+        dest.unlink(missing_ok=True)
+        raise HTTPException(400, "could not decode video")
+    return {"file_id": file_id, "filename": file.filename, "size_mb": round(size / 1e6, 1), **info}
+
+
+@app.post("/api/start")
+def start(req: StartRequest):
+    if not MODELS[req.model]["path"].exists():
+        raise HTTPException(400, f"model file missing: {MODELS[req.model]['path']}")
+    source = req.source.strip()
+    if req.source_type == "camera":
+        if not source.isdigit():
+            raise HTTPException(400, "camera source must be an index like '0'")
