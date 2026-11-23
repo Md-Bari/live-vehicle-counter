@@ -159,3 +159,18 @@ class VideoProcessor:
             self.counter.reset()
             self.all_events.clear()
 
+    # ---------------------------------------------------------------- state
+    def state(self) -> dict:
+        with self.lock:
+            snap = self.counter.snapshot(self.names or [])
+            recent = [e.as_dict() for e in list(self.counter.events)[-25:]][::-1]
+        return {
+            "status": self.status, "error": self.error,
+            "source": None if not self.config else {"type": self.config.source_type, "source": self.config.source,
+                                                    "model": self.config.model, "conf": self.config.conf},
+            "fps": round(self.fps, 1), "frames": self.frames,
+            "frame_size": self.frame_size,
+            "in_frame": dict(self.in_frame),
+            "counts": snap, "recent_events": recent,
+        }
+
