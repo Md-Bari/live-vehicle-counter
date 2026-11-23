@@ -20,3 +20,20 @@ def open_camera(index: int) -> cv2.VideoCapture:
     """DirectShow on Windows (fast open); V4L2/default backend elsewhere (e.g. in Docker)."""
     return cv2.VideoCapture(index, cv2.CAP_DSHOW) if sys.platform == "win32" else cv2.VideoCapture(index)
 
+log = logging.getLogger("processor")
+
+# One distinct BGR colour per class
+_PALETTE = [(56, 56, 255), (151, 157, 255), (31, 112, 255), (29, 178, 255), (49, 210, 207), (10, 249, 72),
+            (23, 204, 146), (134, 219, 61), (52, 147, 26), (187, 212, 0), (168, 153, 44), (255, 194, 0),
+            (147, 69, 52), (255, 115, 100), (236, 24, 0), (255, 56, 132), (133, 0, 82)]
+
+
+@dataclass
+class SessionConfig:
+    source_type: str          # "camera" | "url" | "file"
+    source: str               # camera index, stream URL, or uploaded file path
+    model: str                # key in config.MODELS
+    conf: float = 0.35
+    loop: bool = False        # replay files when they end
+
+
