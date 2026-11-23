@@ -57,3 +57,21 @@ export default function VideoView({ state, streamKey }: { state: PipelineState |
     setFirst(null); setHover(null); setDrawing(false);
   };
 
+  // Shown line: the one being drawn, otherwise the backend's
+  const a: Pt = drawing && first ? first : (line.a as Pt);
+  const b: Pt | null = drawing && first ? hover : (line.b as Pt);
+
+  // Unit normal pointing to the "IN" side (matches backend: cross(a,b,p) > 0), in pixel space
+  let arrows: { inP: Pt; outP: Pt; mid: Pt } | null = null;
+  if (b && !(drawing && first)) {
+    const dx = (b[0] - a[0]) * W, dy = (b[1] - a[1]) * H;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len, ny = dx / len;
+    // anchor near the start of the line, where it usually crosses less traffic than the middle
+    const t = 0.12;
+    const mid: Pt = [(a[0] + (b[0] - a[0]) * t) * W, (a[1] + (b[1] - a[1]) * t) * H];
+    const d = Math.min(W, H) * 0.09;
+    arrows = { mid, inP: [mid[0] + nx * d, mid[1] + ny * d], outP: [mid[0] - nx * d, mid[1] - ny * d] };
+  }
+  const sw = Math.max(2, W / 400);
+
