@@ -75,3 +75,25 @@ class LineCounter:
             return None
         (self.counts_in if direction == "in" else self.counts_out)[cls] += 1
         ev = CrossingEvent(now if now is not None else time.time(), track_id, cls, direction)
+        self._counted[key] = ev
+        self.events.append(ev)
+        while len(self.events) > self.max_events:
+            self.events.popleft()
+        return ev
+
+    def reclassify(self, track_id: int, cls: str) -> bool:
+        """Move an already counted track to class `cls` (its class estimate improved). True if anything changed."""
+        changed = False
+        for direction in ("in", "out"):
+            ev = self._counted.get((track_id, direction))
+            if ev is None or ev.cls == cls:
+                continue
+            counts = self.counts_in if direction == "in" else self.counts_out
+            counts[ev.cls] -= 1
+            if counts[ev.cls] <= 0:
+                del counts[ev.cls]
+            counts[cls] += 1
+            ev.cls = cls            # same object as in the event log / CSV list
+            changed = True
+        return changed
+
